@@ -5,13 +5,15 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"os/user"
 	"path/filepath"
 	"sync"
 )
 
-const projectsDir = "/home/maz/projects"
-
 func main() {
+	usr, _ := user.Current()
+	projectsDir := filepath.Join(usr.HomeDir, "/projects")
+
 	var wg sync.WaitGroup
 
 	dirs, err := os.ReadDir(projectsDir)
@@ -40,7 +42,7 @@ func down(wg *sync.WaitGroup, path string) {
 
 	out, err := exec.Command("docker-compose", "--project-directory="+path, "down").Output()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(path, err)
 	} else {
 		fmt.Println(path, "Command Successfully Executed")
 		output := string(out[:])
