@@ -6,19 +6,19 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sync"
 )
 
 const projectsDir = "/home/maz/projects"
 
 func main() {
-	c := make(chan string)
+	var wg sync.WaitGroup
 
 	dirs, err := os.ReadDir(projectsDir)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	num := 0
 	for _, d := range dirs {
 		if !d.IsDir() {
 			continue
@@ -28,21 +28,22 @@ func main() {
 			continue
 		}
 
-		go down(projectPath, c)
-		num++
+		wg.Add(1)
+		go down(&wg, projectPath)
 	}
 
-	for i := 0; i < num; i++ {
-		fmt.Println(<-c)
-	}
+	wg.Wait()
 }
 
-func down(path string, c chan string) {
-	_, err := exec.Command("docker-compose", "--project-directory="+path, "down").Output()
+func down(wg *sync.WaitGroup, path string) {
+	defer wg.Done()
+
+	out, err := exec.Command("docker-compose", "--project-directory="+path, "down").Output()
 	if err != nil {
-		c <- path + " " + err.Error()
+		fmt.Println(err)
 	} else {
-		// output := string(out[:])
-		c <- path + " Command Successfully Executed"
+		fmt.Println(path, "Command Successfully Executed")
+		output := string(out[:])
+		fmt.Println(output)
 	}
 }
