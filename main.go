@@ -26,7 +26,7 @@ func main() {
 			continue
 		}
 		projectPath := filepath.Join(projectsDir, d.Name())
-		if _, err := os.Stat(filepath.Join(projectPath, "docker-compose.override.yml")); err != nil {
+		if _, err := os.Stat(getComposeFilePath(projectPath)); err != nil {
 			continue
 		}
 
@@ -40,7 +40,7 @@ func main() {
 func down(wg *sync.WaitGroup, path string) {
 	defer wg.Done()
 
-	out, err := exec.Command("docker-compose", "--file="+filepath.Join(path, "docker-compose.override.yml"), "down").Output()
+	out, err := exec.Command("docker-compose", "--file="+getComposeFilePath(path), "down").Output()
 	if err != nil {
 		fmt.Println(path, err)
 	} else {
@@ -48,4 +48,8 @@ func down(wg *sync.WaitGroup, path string) {
 		output := string(out[:])
 		fmt.Println(output)
 	}
+}
+
+func getComposeFilePath(p string) string {
+	return filepath.Join(p, "docker-compose.override.yml")
 }
