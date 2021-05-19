@@ -51,5 +51,9 @@ func down(wg *sync.WaitGroup, path string) {
 }
 
 func getComposeFilePath(p string) string {
-	return filepath.Join(p, "docker-compose.override.yml")
+	_, err := os.Stat(filepath.Join(p, "docker-compose.override.yml"))
+	if err == nil {
+		return filepath.Join(p, "docker-compose.override.yml")
+	}
+	return filepath.Join(p, "docker-compose.yml")
 }
